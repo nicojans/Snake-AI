@@ -17,7 +17,6 @@ class Game:
         self._score = 0
         self._snake = None
         self._food = None
-        self.reset()
 
     def reset(self):
         self._score = 0
@@ -25,7 +24,7 @@ class Game:
         self._generate_food()
 
     def move(self, direction):
-        new_head = list(self.snake[0])
+        new_head = list(self._snake[0])
         if direction == 0:
             new_head[1] -= 1
         elif direction == 1:
@@ -38,11 +37,11 @@ class Game:
         if self._is_dead(new_head):
             return False
 
-        self.snake.insert(0, new_head)
-        if new_head != self.food:
-            self.snake.pop()
+        self._snake.insert(0, new_head)
+        if new_head != self._food:
+            self._snake.pop()
         else:
-            if len(self.snake) == self._width * self._height:
+            if len(self._snake) == self._width * self._height:
                 return False
             else:
                 self._generate_food()
@@ -50,25 +49,14 @@ class Game:
         return True
 
     def state(self):
-        x = self.snake[0][0]
-        y = self.snake[0][1]
+        x = self._snake[0][0]
+        y = self._snake[0][1]
         # distance from food
-        food_x = self.food[0] - x
-        food_y = self.food[1] - y
+        food_x = self._food[0] - x
+        food_y = self._food[1] - y
         state = [food_x if food_x > 0 else 25, food_y if food_y > 0 else 25]
         state += [food_x if food_x < 0 else 25, food_y if food_y < 0 else 25]
-
-        # check if empty
-        # for i in range(-3, 4):
-        #   for j in range(-3, 4):
-        #      state += [self.is_dead([x + i, y + j])]
-        # state += [self.is_dead([x + 1, y])]
-        # state += [self.is_dead([x, y - 1])]
-        # state += [self.is_dead([x - 1, y])]
-        # state += [self.is_dead([x, y + 1])]
-        # snake length
-        state += [math.log(len(self.snake), 10)]
-        # space in each direction
+        # available space
         state += [self._space_available([x + 1, y])]
         state += [self._space_available([x, y - 1])]
         state += [self._space_available([x - 1, y])]
@@ -76,7 +64,7 @@ class Game:
 
         return np.array(state)
 
-    def play_new_game(self, speed, ai=None):
+    def play_new_game(self, speed, ai_next_movement=None):
         self.reset()
         game_width = self._width * self.SIZE
         game_height = self._height * self.SIZE
@@ -100,7 +88,7 @@ class Game:
                     alive = True
                     direction = 1
 
-            if ai is None:
+            if ai_next_movement is None:
                 pressed = pygame.key.get_pressed()
                 if pressed[pygame.K_UP]:
                     direction = 0
@@ -111,7 +99,7 @@ class Game:
                 if pressed[pygame.K_LEFT]:
                     direction = 3
             else:
-                direction = ai.next_movement()
+                direction = ai_next_movement(self.state())
 
             counter += 1
             if counter == speed:
@@ -120,7 +108,7 @@ class Game:
 
             screen.fill((0, 0, 0))
             if alive:
-                for elem in self.snake:
+                for elem in self._snake:
                     rect = pygame.Rect(elem[0] * self.SIZE, elem[1] * self.SIZE, self.SIZE, self.SIZE)
                     pygame.draw.rect(screen, self.BLUE, rect)
                 rect = pygame.Rect(self._food[0] * self.SIZE, self._food[1] * self.SIZE, self.SIZE, self.SIZE)
@@ -138,19 +126,19 @@ class Game:
             clock.tick(60)
 
     def _generate_snake(self):
-        self.snake = [[4, 4], [4, 3], [4, 2]]
+        self._snake = [[4, 4], [4, 3], [4, 2]]
 
     def _generate_food(self):
-        self.food = None
-        while self.food is None:
+        self._food = None
+        while self._food is None:
             new_food = [np.random.randint(0, self._width), np.random.randint(0, self._height)]
-            self.food = new_food if not self._is_snake(new_food) else None
+            self._food = new_food if not self._is_snake(new_food) else None
 
     def _is_dead(self, block):
         return self._out_of_bound(block) or self._is_snake(block)
 
     def _is_snake(self, block):
-        for e in self.snake:
+        for e in self._snake:
             if e == block:
                 return True
         return False
