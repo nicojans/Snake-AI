@@ -126,7 +126,7 @@ class Game:
             clock.tick(60)
 
     def _generate_snake(self):
-        self._snake = [[4, 4], [4, 3], [4, 2]]
+        self._snake = [[4, 4], [3, 4], [2, 4]]
 
     def _generate_food(self):
         self._food = None
