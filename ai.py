@@ -34,7 +34,7 @@ class Model:
 
     def _build_model(self):
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Dense(10, input_dim=self._state_size, activation=tf.nn.relu),
+            tf.keras.layers.Dense(16, input_dim=self._state_size, activation=tf.nn.relu),
             tf.keras.layers.Dense(self._action_size)
         ])
         model.compile(optimizer=tf.train.AdamOptimizer(), loss='mse', metrics=['accuracy'])
@@ -71,3 +71,9 @@ class Model:
 
         if self._epsilon > EPSILON_MIN:
             self._epsilon *= EPSILON_DECAY
+
+    def save(self, file_name):
+        self._model.save_weights(file_name)
+
+    def load(self, file_name):
+        self._model.load_weights(file_name)
